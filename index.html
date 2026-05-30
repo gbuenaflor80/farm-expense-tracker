@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Farm Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
     --green-dark: #1e3a1e;
@@ -28,151 +27,44 @@
     --radius-sm: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--gray-pale);
-    color: var(--gray-dark);
-    min-height: 100vh;
-  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-pale); color: var(--gray-dark); min-height: 100vh; }
 
-  /* HEADER */
   .header {
-    background: var(--green-dark);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: var(--green-dark); padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px; position: sticky; top: 0; z-index: 100;
   }
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-icon {
-    width: 36px;
-    height: 36px;
-    background: var(--green-accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-  }
-  .header h1 {
-    font-family: 'Lora', serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.3px;
-  }
-  .header-sub {
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
-    margin-top: 1px;
-  }
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .api-badge {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 99px;
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.15);
-  }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-icon { width: 36px; height: 36px; background: var(--green-accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .header h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: #fff; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+  .api-badge { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); }
   .api-badge.connected { background: rgba(74,140,74,0.3); color: #7ec87e; border-color: rgba(74,140,74,0.4); }
 
-  /* MAIN LAYOUT */
   .main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-  /* API KEY SETUP */
-  .setup-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .setup-card h2 {
-    font-family: 'Lora', serif;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--green-dark);
-    margin-bottom: 4px;
-  }
+  .setup-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+  .setup-card h2 { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); margin-bottom: 4px; }
   .setup-card p { font-size: 13px; color: var(--gray-mid); margin-bottom: 12px; line-height: 1.5; }
   .setup-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .setup-row input {
-    flex: 1;
-    min-width: 200px;
-    font-size: 13px;
-    padding: 9px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    background: var(--gray-pale);
-    color: var(--gray-dark);
-  }
+  .setup-row input { flex: 1; min-width: 200px; font-size: 13px; padding: 9px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; background: var(--gray-pale); color: var(--gray-dark); }
   .setup-row input:focus { outline: none; border-color: var(--green-accent); background: #fff; }
   .setup-note { font-size: 11px; color: var(--gray-mid); margin-top: 8px; }
   .setup-note a { color: var(--green-accent); text-decoration: none; }
-  .setup-note a:hover { text-decoration: underline; }
 
-  /* UPLOAD ZONE */
-  .upload-card {
-    background: var(--white);
-    border: 1.5px dashed var(--green-accent);
-    border-radius: var(--radius);
-    padding: 2.5rem 1.5rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    box-shadow: var(--shadow);
-  }
+  .upload-card { background: var(--white); border: 1.5px dashed var(--green-accent); border-radius: var(--radius); padding: 2.5rem 1.5rem; text-align: center; margin-bottom: 1.5rem; cursor: pointer; transition: background 0.15s; box-shadow: var(--shadow); }
   .upload-card:hover, .upload-card.drag { background: var(--green-pale); border-color: var(--green-mid); }
   .upload-icon { font-size: 40px; margin-bottom: 12px; display: block; }
-  .upload-card h2 {
-    font-family: 'Lora', serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--green-dark);
-    margin-bottom: 6px;
-  }
+  .upload-card h2 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--green-dark); margin-bottom: 6px; }
   .upload-card p { font-size: 14px; color: var(--gray-mid); margin-top: 4px; }
   .format-pills { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-  .pill {
-    font-size: 12px; font-weight: 500;
-    padding: 4px 14px; border-radius: 99px;
-  }
+  .pill { font-size: 12px; font-weight: 500; padding: 4px 14px; border-radius: 99px; }
   .pill-green { background: var(--green-light); color: var(--green-dark); border: 1px solid #b8d8b8; }
   .pill-blue { background: #e8f0fd; color: #1a4a9e; border: 1px solid #b8ccf0; }
   .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
 
-  /* BUTTONS */
-  .btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 500;
-    padding: 8px 18px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--white);
-    color: var(--gray-dark);
-    cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px;
-    white-space: nowrap;
-    transition: background 0.12s, border-color 0.12s;
-    text-decoration: none;
-  }
-  .btn:hover { background: var(--gray-pale); border-color: #bbb; }
+  .btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--white); color: var(--gray-dark); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.12s; text-decoration: none; }
+  .btn:hover { background: var(--gray-pale); }
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
   .btn-primary:hover { background: var(--green-mid); border-color: var(--green-mid); }
@@ -181,234 +73,80 @@
   .btn-danger { background: var(--red-light); color: var(--red); border-color: #e8c0c0; }
   .btn-danger:hover { background: #f5d8d8; }
   .btn-amber { background: var(--amber-light); color: var(--amber); border-color: #e8d0a0; }
-  .btn-amber:hover { background: #fae8c0; }
   .btn-sm { font-size: 12px; padding: 5px 12px; }
 
-  /* PROCESSING */
-  .proc-box {
-    display: none;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 3rem 2rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .proc-spinner {
-    width: 44px; height: 44px;
-    border: 3px solid var(--green-light);
-    border-top-color: var(--green-accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
+  .proc-box { display: none; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem 2rem; text-align: center; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+  .proc-spinner { width: 44px; height: 44px; border: 3px solid var(--green-light); border-top-color: var(--green-accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .proc-title { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; color: var(--green-dark); margin-bottom: 6px; }
   .proc-sub { font-size: 13px; color: var(--gray-mid); }
   .proc-bar-wrap { background: var(--gray-light); border-radius: 99px; height: 6px; max-width: 320px; margin: 16px auto 0; overflow: hidden; }
   .proc-bar { height: 6px; border-radius: 99px; background: var(--green-accent); transition: width 0.4s; width: 0%; }
 
-  /* ERROR */
-  .err-box {
-    display: none;
-    background: var(--red-light);
-    border: 1px solid #e8c0c0;
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--red);
-    margin-bottom: 1rem;
-  }
+  .err-box { display: none; background: var(--red-light); border: 1px solid #e8c0c0; border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--red); margin-bottom: 1rem; line-height: 1.5; }
 
-  /* APP AREA */
   .app-area { display: none; }
 
-  /* SUMMARY GRID */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 14px;
-    margin-bottom: 1.5rem;
-  }
-  .metric {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    box-shadow: var(--shadow);
-  }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 1.5rem; }
+  .metric { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
   .metric-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); margin-bottom: 6px; }
   .metric-value { font-size: 24px; font-weight: 500; color: var(--gray-dark); font-family: 'Lora', serif; }
   .metric-value.green { color: var(--green-mid); }
   .metric-value.amber { color: var(--amber); }
 
-  /* TOOLBAR */
-  .toolbar {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    box-shadow: var(--shadow);
-  }
-  .toolbar input[type=text], .toolbar select {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    padding: 7px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--gray-pale);
-    color: var(--gray-dark);
-    height: 34px;
-  }
-  .toolbar input[type=text]:focus, .toolbar select:focus {
-    outline: none; border-color: var(--green-accent); background: #fff;
-  }
+  .toolbar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 1rem; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); }
+  .toolbar input[type=text], .toolbar select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--gray-pale); color: var(--gray-dark); height: 34px; }
+  .toolbar input[type=text]:focus, .toolbar select:focus { outline: none; border-color: var(--green-accent); background: #fff; }
   .toolbar-right { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-  .cat-status {
-    font-size: 12px; color: var(--gray-mid);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .sm-spin {
-    width: 12px; height: 12px;
-    border: 2px solid var(--green-light);
-    border-top-color: var(--green-accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-  }
+  .cat-status { font-size: 12px; color: var(--gray-mid); display: flex; align-items: center; gap: 6px; }
+  .sm-spin { width: 12px; height: 12px; border: 2px solid var(--green-light); border-top-color: var(--green-accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
   .prog-mini { background: var(--gray-light); border-radius: 99px; height: 3px; width: 80px; overflow: hidden; }
   .prog-mini-fill { height: 3px; border-radius: 99px; background: var(--green-accent); transition: width 0.3s; width: 0%; }
 
-  /* TABLE */
-  .table-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-bottom: 1rem;
-  }
-  .table-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--green-pale);
-  }
+  .table-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1rem; }
+  .table-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--green-pale); }
   .table-title { font-family: 'Lora', serif; font-size: 14px; font-weight: 600; color: var(--green-dark); }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-  th {
-    background: var(--gray-pale);
-    font-weight: 500; font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--gray-mid);
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--gray-light);
-    vertical-align: middle;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
+  th { background: var(--gray-pale); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-mid); padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-light); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   tr:last-child td { border-bottom: none; }
   tr.excluded td { opacity: 0.35; }
   tr.excluded { background: var(--gray-pale); }
-  tr:hover td { background: var(--green-pale); }
-  tr.excluded:hover td { background: var(--gray-pale); }
+  tr:hover:not(.excluded) td { background: var(--green-pale); }
 
-  /* TOGGLE */
-  .tog {
-    width: 38px; height: 21px;
-    border-radius: 99px; border: none; cursor: pointer;
-    position: relative; flex-shrink: 0; padding: 0;
-    transition: background 0.2s;
-  }
+  .tog { width: 38px; height: 21px; border-radius: 99px; border: none; cursor: pointer; position: relative; flex-shrink: 0; padding: 0; transition: background 0.2s; }
   .tog.on { background: var(--green-accent); }
   .tog.off { background: var(--gray-light); }
-  .tog::after {
-    content: '';
-    position: absolute;
-    width: 15px; height: 15px;
-    border-radius: 50%; background: white;
-    top: 3px; transition: left 0.18s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
+  .tog::after { content: ''; position: absolute; width: 15px; height: 15px; border-radius: 50%; background: white; top: 3px; transition: left 0.18s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
   .tog.on::after { left: 20px; }
   .tog.off::after { left: 3px; }
 
-  /* CATEGORY SELECT */
-  .cat-sel {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px; padding: 4px 6px;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    background: var(--gray-pale);
-    color: var(--gray-dark);
-    width: 100%;
-  }
+  .cat-sel { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 4px 6px; border-radius: 5px; border: 1px solid var(--border); background: var(--gray-pale); color: var(--gray-dark); width: 100%; }
   .cat-sel:focus { outline: none; border-color: var(--green-accent); background: #fff; }
+  .amount-cell { text-align: right; font-weight: 500; }
 
-  /* AMOUNT */
-  .amount-cell { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
-
-  /* BREAKDOWN */
-  .breakdown-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .breakdown-card h3 {
-    font-family: 'Lora', serif; font-size: 14px; font-weight: 600;
-    color: var(--green-dark); margin-bottom: 14px;
-  }
+  .breakdown-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+  .breakdown-card h3 { font-family: 'Lora', serif; font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 14px; }
   .bk-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   .bk-label { min-width: 170px; font-size: 13px; color: var(--gray-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: var(--gray-light); overflow: hidden; }
   .bk-bar { height: 6px; border-radius: 3px; }
-  .bk-amt { min-width: 80px; text-align: right; font-size: 13px; font-weight: 500; color: var(--gray-dark); }
+  .bk-amt { min-width: 80px; text-align: right; font-size: 13px; font-weight: 500; }
 
-  /* EXPORT ROW */
-  .export-row {
-    display: flex; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 2rem;
-  }
-
-  /* FILE TAG */
-  .ftag {
-    font-size: 11px; font-weight: 500;
-    padding: 2px 8px; border-radius: 99px;
-    display: inline-block; margin-right: 6px;
-  }
+  .export-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 2rem; }
+  .ftag { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; display: inline-block; margin-right: 6px; }
   .ftag-pdf { background: #e8f0fd; color: #1a4a9e; }
   .ftag-csv { background: var(--green-light); color: var(--green-dark); }
-
-  /* EMPTY */
   .empty-state { text-align: center; padding: 3rem; color: var(--gray-mid); font-size: 14px; }
-
-  /* TIP */
   .tip { font-size: 12px; color: var(--gray-mid); margin: 8px 0 1rem; padding: 0 4px; }
 
-  /* RESPONSIVE */
   @media (max-width: 600px) {
     .main { padding: 1rem; }
     .header { padding: 0 1rem; }
     .header h1 { font-size: 15px; }
     .metric-value { font-size: 18px; }
     .summary-grid { grid-template-columns: 1fr 1fr; }
-    .toolbar { gap: 6px; }
     .export-row { flex-direction: column; }
   }
 </style>
@@ -430,22 +168,19 @@
 
 <main class="main">
 
-  <!-- API KEY SETUP -->
   <div class="setup-card" id="setupCard">
     <h2>🔑 One-time setup — enter your Anthropic API key</h2>
-    <p>This app uses AI to read PDFs and categorize transactions. You need a free Anthropic API key. It's stored only in your browser — never sent anywhere except directly to Anthropic.</p>
+    <p>This app uses AI to read PDFs and categorize transactions. Enter your Anthropic API key below. It's saved only in your browser — never shared anywhere except directly to Anthropic's servers.</p>
     <div class="setup-row">
       <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
       <button class="btn btn-primary" onclick="saveKey()">Save key</button>
       <button class="btn" onclick="clearKey()" style="color:#a33232">Clear</button>
     </div>
     <div class="setup-note">
-      Get a free API key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key. 
-      Usage costs a few cents per statement — typically under $0.05.
+      Get a free API key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key. Costs pennies per statement — new accounts get free credit.
     </div>
   </div>
 
-  <!-- UPLOAD -->
   <div class="upload-card" id="uploadZone">
     <span class="upload-icon">📄</span>
     <h2>Upload your bank or credit card statement</h2>
@@ -462,10 +197,8 @@
     </div>
   </div>
 
-  <!-- ERROR -->
   <div class="err-box" id="errBox"></div>
 
-  <!-- PROCESSING -->
   <div class="proc-box" id="procBox">
     <div class="proc-spinner"></div>
     <div class="proc-title" id="procTitle">Reading your statement...</div>
@@ -473,26 +206,12 @@
     <div class="proc-bar-wrap"><div class="proc-bar" id="procBar"></div></div>
   </div>
 
-  <!-- APP -->
   <div class="app-area" id="appArea">
-
     <div class="summary-grid">
-      <div class="metric">
-        <div class="metric-label">Total transactions</div>
-        <div class="metric-value" id="mTotal">0</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Business total</div>
-        <div class="metric-value green" id="mBiz">$0.00</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Personal (excluded)</div>
-        <div class="metric-value amber" id="mPers">$0.00</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Business items</div>
-        <div class="metric-value green" id="mBizCt">0</div>
-      </div>
+      <div class="metric"><div class="metric-label">Total transactions</div><div class="metric-value" id="mTotal">0</div></div>
+      <div class="metric"><div class="metric-label">Business total</div><div class="metric-value green" id="mBiz">$0.00</div></div>
+      <div class="metric"><div class="metric-label">Personal (excluded)</div><div class="metric-value amber" id="mPers">$0.00</div></div>
+      <div class="metric"><div class="metric-label">Business items</div><div class="metric-value green" id="mBizCt">0</div></div>
     </div>
 
     <div class="toolbar">
@@ -525,10 +244,10 @@
           <thead>
             <tr>
               <th style="width:46px">Include</th>
-              <th style="width:68px">Date</th>
+              <th style="width:72px">Date</th>
               <th>Description</th>
               <th style="width:90px;text-align:right">Amount</th>
-              <th style="width:160px">Category</th>
+              <th style="width:165px">Category</th>
             </tr>
           </thead>
           <tbody id="tBody">
@@ -550,16 +269,10 @@
       <button class="btn btn-amber" onclick="printSummary()">🖨 Print summary</button>
       <button class="btn" onclick="exportAll()">⬇ Export all transactions (CSV)</button>
     </div>
-
   </div>
 </main>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-if (typeof pdfjsLib !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
-
 const CATS = [
   'Feed & Hay','Vet & Medical','Farm Supplies','Equipment & Tools',
   'Fuel & Transport','Repairs & Maintenance','Utilities','Insurance',
@@ -576,12 +289,11 @@ const CAT_COLORS = {
   'Feed & Hay':'#3B6D11','Vet & Medical':'#185FA5','Farm Supplies':'#854F0B',
   'Equipment & Tools':'#534AB7','Fuel & Transport':'#5F5E5A',
   'Repairs & Maintenance':'#0F6E56','Utilities':'#993C1D','Insurance':'#3B6D11',
-  'Seeds & Plants':'#3B6D11','Labor':'#633806',
-  'Groceries':'#888780','Dining & Coffee':'#BA7517','Shopping':'#D85A30',
+  'Seeds & Plants':'#3B6D11','Labor':'#633806','Groceries':'#888780',
+  'Dining & Coffee':'#BA7517','Shopping':'#D85A30',
   'Entertainment & Subscriptions':'#D4537E','Pharmacy & Health':'#378ADD',
   'Kids & Family':'#1D9E75','Finance & Transfers':'#888780','Other':'#888780'
 };
-
 const SAMPLE = [
   {date:'2025-01-03',desc:'TRACTOR SUPPLY CO #881',amount:247.50,cat:'Farm Supplies',isBiz:true},
   {date:'2025-01-05',desc:'WALMART SUPERCENTER',amount:89.22,cat:'Groceries',isBiz:false},
@@ -605,15 +317,13 @@ const SAMPLE = [
   {date:'2025-01-31',desc:'APPLE.COM/BILL',amount:9.99,cat:'Entertainment & Subscriptions',isBiz:false},
 ];
 
-// ── STATE ────────────────────────────────────────────────────────────────────
 let txns = [];
 let apiKey = localStorage.getItem('farm_tracker_api_key') || '';
 
-// ── API KEY ──────────────────────────────────────────────────────────────────
 function initKeyUI() {
   if (apiKey) {
     document.getElementById('apiKeyInput').value = apiKey;
-    document.getElementById('apiBadge').textContent = 'AI ready';
+    document.getElementById('apiBadge').textContent = 'AI ready ✓';
     document.getElementById('apiBadge').className = 'api-badge connected';
     document.getElementById('setupCard').style.display = 'none';
   }
@@ -637,10 +347,9 @@ function clearKey() {
   document.getElementById('setupCard').style.display = '';
 }
 
-// ── UI HELPERS ───────────────────────────────────────────────────────────────
 function showErr(msg) {
   const b = document.getElementById('errBox');
-  b.textContent = msg; b.style.display = msg ? 'block' : 'none';
+  b.innerHTML = msg; b.style.display = msg ? 'block' : 'none';
 }
 function setProc(title, sub, pct) {
   document.getElementById('procTitle').textContent = title;
@@ -656,9 +365,7 @@ function showApp(name, type) {
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('procBox').style.display = 'none';
   document.getElementById('appArea').style.display = 'block';
-  const tag = type === 'PDF'
-    ? '<span class="ftag ftag-pdf">PDF</span>'
-    : '<span class="ftag ftag-csv">CSV</span>';
+  const tag = type === 'PDF' ? '<span class="ftag ftag-pdf">PDF</span>' : '<span class="ftag ftag-csv">CSV</span>';
   document.getElementById('tableTitle').innerHTML = tag + (name || 'Transactions');
 }
 function resetApp() {
@@ -670,17 +377,11 @@ function resetApp() {
   showErr('');
 }
 
-// ── FILE HANDLING ────────────────────────────────────────────────────────────
-document.getElementById('fileInput').addEventListener('change', e => {
-  const f = e.target.files[0]; if (f) handleFile(f);
-});
+document.getElementById('fileInput').addEventListener('change', e => { const f = e.target.files[0]; if (f) handleFile(f); });
 const uz = document.getElementById('uploadZone');
 uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag'); });
 uz.addEventListener('dragleave', () => uz.classList.remove('drag'));
-uz.addEventListener('drop', e => {
-  e.preventDefault(); uz.classList.remove('drag');
-  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
-});
+uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
 
 async function handleFile(file) {
   const name = file.name.toLowerCase();
@@ -690,7 +391,6 @@ async function handleFile(file) {
   isPDF ? await handlePDF(file) : await handleCSV(file);
 }
 
-// ── CSV ──────────────────────────────────────────────────────────────────────
 async function handleCSV(file) {
   showProc(); setProc('Reading CSV...', 'Parsing your transactions', 20);
   try {
@@ -708,7 +408,7 @@ async function handleCSV(file) {
 function parseCSV(text) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return null;
-  const hdr = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+  const hdr = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
   const di = hdr.findIndex(h => h.includes('date'));
   const xi = hdr.findIndex(h => ['desc','merchant','memo','name','payee','narration'].some(k => h.includes(k)));
   const ai = hdr.findIndex(h => ['amount','debit','charge','withdrawal'].some(k => h.includes(k)));
@@ -716,9 +416,8 @@ function parseCSV(text) {
   const out = [];
   lines.slice(1).forEach((line, i) => {
     const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || line.split(',');
-    const c = n => (cols[n] || '').replace(/"/g, '').trim();
-    const raw = c(ai).replace(/[$,\s()]/g, '');
-    const amt = parseFloat(raw.replace('-',''));
+    const c = n => (cols[n] || '').replace(/"/g,'').trim();
+    const amt = parseFloat(c(ai).replace(/[$,\s()]/g,'').replace('-',''));
     if (!isNaN(amt) && amt > 0) {
       out.push({ id: i, date: c(di), desc: c(xi >= 0 ? xi : 1), amount: amt, cat: 'Other', isBiz: false });
     }
@@ -726,65 +425,83 @@ function parseCSV(text) {
   return out.length ? out : null;
 }
 
-// ── PDF ──────────────────────────────────────────────────────────────────────
+// PDF: read as base64, send directly to Anthropic API as a document
 async function handlePDF(file) {
   if (!apiKey) {
-    showErr('Please enter your Anthropic API key above before uploading a PDF.');
+    showErr('Please enter your Anthropic API key above first — it\'s needed to read PDF files.');
     document.getElementById('setupCard').style.display = '';
     return;
   }
-  showProc(); setProc('Reading PDF...', 'Extracting text from your statement', 15);
+  showProc(); setProc('Reading PDF...', 'Converting file for AI processing...', 10);
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    let fullText = '';
-    if (typeof pdfjsLib !== 'undefined') {
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      for (let p = 1; p <= Math.min(pdf.numPages, 25); p++) {
-        const page = await pdf.getPage(p);
-        const content = await page.getTextContent();
-        fullText += content.items.map(i => i.str).join(' ') + '\n';
-        setProc('Reading PDF...', `Page ${p} of ${pdf.numPages}`, 15 + Math.round((p / pdf.numPages) * 25));
-      }
-    }
-    if (!fullText.trim()) {
-      showErr('Could not extract text from this PDF. It may be a scanned image. Please try downloading a CSV from your bank instead.'); resetApp(); return;
-    }
-    setProc('AI extracting transactions...', 'Claude is parsing the statement', 45);
-    const extracted = await extractPDFTransactions(fullText, file.name);
+    const b64 = await fileToBase64(file);
+    setProc('AI reading statement...', 'Claude is extracting your transactions — this takes 10-20 seconds', 30);
+    const extracted = await extractPDFviaAPI(b64);
     if (!extracted || extracted.length === 0) {
-      showErr('No transactions found in this PDF. Make sure it is a bank or credit card statement (not a scanned paper copy).'); resetApp(); return;
+      showErr('No transactions found in this PDF. Make sure it\'s a digital bank statement (downloaded from your bank\'s website), not a scanned paper copy. For scanned PDFs, please use CSV export from your bank instead.');
+      resetApp(); return;
     }
     txns = extracted;
     showApp(file.name, 'PDF'); updateAll();
-    setProc('Categorizing...', 'AI is labeling your transactions', 75);
     await aiCategorize();
   } catch(e) {
     console.error(e);
-    showErr('Could not process PDF: ' + e.message + '. Try downloading a CSV from your bank instead.'); resetApp();
+    showErr('Could not process PDF: ' + (e.message || 'Unknown error') + '<br><br>Try downloading a CSV from your bank instead — most banks offer this under Account Activity → Download/Export.');
+    resetApp();
   }
 }
 
-async function extractPDFTransactions(text, filename) {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514', max_tokens: 4000,
-      system: `You parse bank and credit card statement text. Extract every purchase/charge/debit transaction. Return ONLY a valid JSON array. Each object: date (string as shown), desc (clean merchant name, no codes), amount (positive number). Skip: payments received, credits, deposits, balance rows, interest, fees headers, totals. Return ONLY the JSON array, no markdown, no explanation.`,
-      messages: [{ role: 'user', content: `Extract all debit/purchase transactions from this statement text:\n\n${text.slice(0, 14000)}` }]
-    })
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('Could not read file'));
+    r.readAsDataURL(file);
   });
-  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'API error ' + resp.status); }
-  const data = await resp.json();
-  const raw = data.content?.find(b => b.type === 'text')?.text || '[]';
-  const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-  return parsed.filter(t => t.amount > 0 && t.desc).map((t, i) => ({
-    id: i, date: String(t.date || ''), desc: String(t.desc || ''),
-    amount: parseFloat(t.amount) || 0, cat: 'Other', isBiz: false
-  }));
 }
 
-// ── AI CATEGORIZE ────────────────────────────────────────────────────────────
+async function extractPDFviaAPI(b64) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-calls': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      system: `You are an expert at reading bank and credit card statements. Extract every purchase, charge, or debit transaction. Return ONLY a valid JSON array — no markdown, no explanation, nothing else. Each object must have: date (string as shown on statement), desc (clean merchant name only, remove reference codes), amount (positive number, no $ sign). Skip: deposits, credits, payments received, balance rows, interest charges, fee summaries, transfers between own accounts, opening/closing balances.`,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+          { type: 'text', text: 'Extract all purchase/debit transactions from this bank statement as a JSON array.' }
+        ]
+      }]
+    })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(() => ({}));
+    throw new Error(e.error?.message || 'API error ' + resp.status);
+  }
+  const data = await resp.json();
+  const raw = data.content?.find(b => b.type === 'text')?.text || '[]';
+  const clean = raw.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(clean);
+  return parsed
+    .filter(t => t.amount > 0 && t.desc)
+    .map((t, i) => ({
+      id: i,
+      date: String(t.date || ''),
+      desc: String(t.desc || ''),
+      amount: parseFloat(t.amount) || 0,
+      cat: 'Other',
+      isBiz: false
+    }));
+}
+
 async function aiCategorize() {
   if (!apiKey || !txns.length) return;
   const cs = document.getElementById('catStatus');
@@ -799,40 +516,41 @@ async function aiCategorize() {
     try {
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true'
+        },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 800,
-          system: `You categorize transactions for a small farm business. Categories: ${CATS.join(', ')}. Farm vendors (Tractor Supply, feed stores, co-ops, vets, farm supply, rural supply, fencing, seeds, livestock, hay) → appropriate farm category. Personal (restaurants, coffee shops, streaming, clothing, entertainment, personal groceries) → appropriate personal category. Return ONLY JSON: {"id":"category"} for each transaction ID. Nothing else.`,
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 800,
+          system: `Categorize transactions for a small farm business. Categories: ${CATS.join(', ')}. Farm vendors (Tractor Supply, feed stores, co-ops, vets, farm supply, rural supply, fencing, seeds, livestock, hay, equipment dealers) → appropriate farm category. Personal items (restaurants, coffee, streaming, clothing, entertainment, personal groceries) → appropriate personal category. Return ONLY a JSON object like {"0":"Feed & Hay","1":"Vet & Medical"} mapping ID to category. Nothing else.`,
           messages: [{ role: 'user', content: `Categorize:\n${payload}` }]
         })
       });
       const data = await resp.json();
       const raw = data.content?.find(b => b.type === 'text')?.text || '{}';
-      const cats = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      const cats = JSON.parse(raw.replace(/```json|```/g,'').trim());
       slice.forEach(t => {
         const c = cats[String(t.id)];
         if (c && CATS.includes(c)) { t.cat = c; t.isBiz = BIZ_CATS.has(c); }
       });
       updateAll();
-    } catch(e) { console.error('Cat error', e); }
+    } catch(e) { console.error('Categorization error', e); }
   }
   document.getElementById('catProg').style.width = '100%';
   setTimeout(() => { cs.style.display = 'none'; }, 800);
 }
 
-// ── SAMPLE ───────────────────────────────────────────────────────────────────
 function loadSample() {
   txns = SAMPLE.map((t, i) => ({ ...t, id: i }));
   showApp('Sample Farm Data (Jan 2025)', 'CSV');
   updateAll();
 }
 
-// ── ACTIONS ──────────────────────────────────────────────────────────────────
 function toggle(id) { const t = txns.find(x => x.id === id); if (t) { t.isBiz = !t.isBiz; updateAll(); } }
-function updateCat(id, cat) {
-  const t = txns.find(x => x.id === id);
-  if (t) { t.cat = cat; t.isBiz = BIZ_CATS.has(cat); updateAll(); }
-}
+function updateCat(id, cat) { const t = txns.find(x => x.id === id); if (t) { t.cat = cat; t.isBiz = BIZ_CATS.has(cat); updateAll(); } }
 function markAll(biz) { getFiltered().forEach(t => t.isBiz = biz); updateAll(); }
 
 function getFiltered() {
@@ -848,14 +566,13 @@ function getFiltered() {
   });
 }
 
-// ── RENDER ───────────────────────────────────────────────────────────────────
 function updateAll() { updateSummary(); renderTable(); renderBreakdown(); }
 
 function updateSummary() {
   const biz = txns.filter(t => t.isBiz), pers = txns.filter(t => !t.isBiz);
   document.getElementById('mTotal').textContent = txns.length;
-  document.getElementById('mBiz').textContent = '$' + biz.reduce((s, t) => s + t.amount, 0).toFixed(2);
-  document.getElementById('mPers').textContent = '$' + pers.reduce((s, t) => s + t.amount, 0).toFixed(2);
+  document.getElementById('mBiz').textContent = '$' + biz.reduce((s,t) => s+t.amount, 0).toFixed(2);
+  document.getElementById('mPers').textContent = '$' + pers.reduce((s,t) => s+t.amount, 0).toFixed(2);
   document.getElementById('mBizCt').textContent = biz.length;
   const cf = document.getElementById('catF'), prev = cf.value;
   cf.innerHTML = '<option value="">All categories</option>';
@@ -882,13 +599,12 @@ function renderTable() {
 }
 
 function renderBreakdown() {
-  const biz = txns.filter(t => t.isBiz);
-  const bc = document.getElementById('bkCard');
+  const biz = txns.filter(t => t.isBiz), bc = document.getElementById('bkCard');
   if (!biz.length) { bc.style.display = 'none'; return; }
   bc.style.display = 'block';
-  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat] || 0) + t.amount);
-  const sorted = Object.entries(tot).sort((a, b) => b[1] - a[1]), max = sorted[0][1];
-  document.getElementById('bkBody').innerHTML = sorted.map(([c, a]) =>
+  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat]||0) + t.amount);
+  const sorted = Object.entries(tot).sort((a,b) => b[1]-a[1]), max = sorted[0][1];
+  document.getElementById('bkBody').innerHTML = sorted.map(([c,a]) =>
     `<div class="bk-row">
       <div class="bk-label">${c}</div>
       <div class="bk-bar-bg"><div class="bk-bar" style="width:${Math.round(a/max*100)}%;background:${CAT_COLORS[c]||'#888'}"></div></div>
@@ -897,7 +613,6 @@ function renderBreakdown() {
   ).join('');
 }
 
-// ── EXPORT ───────────────────────────────────────────────────────────────────
 function exportCSV() {
   const biz = txns.filter(t => t.isBiz);
   if (!biz.length) { alert('No business transactions selected.'); return; }
@@ -909,34 +624,23 @@ function exportAll() {
 }
 function downloadCSV(rows, filename) {
   const csv = ['Date,Description,Amount,Category,Type',
-    ...rows.map(t => `"${t.date}","${t.desc}",${t.amount.toFixed(2)},"${t.cat}","${t.isBiz ? 'Business' : 'Personal'}"`)
+    ...rows.map(t => `"${t.date}","${t.desc}",${t.amount.toFixed(2)},"${t.cat}","${t.isBiz?'Business':'Personal'}"`)
   ].join('\n');
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
   a.download = filename; a.click();
 }
 
 function printSummary() {
-  const biz = txns.filter(t => t.isBiz), total = biz.reduce((s, t) => s + t.amount, 0).toFixed(2);
-  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat] || 0) + t.amount);
+  const biz = txns.filter(t => t.isBiz), total = biz.reduce((s,t) => s+t.amount, 0).toFixed(2);
+  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat]||0) + t.amount);
   const catRows = Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`<tr><td>${c}</td><td style="text-align:right">$${a.toFixed(2)}</td></tr>`).join('');
   const txRows = biz.map(t=>`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.cat}</td><td style="text-align:right">$${t.amount.toFixed(2)}</td></tr>`).join('');
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Farm Business Expenses</title>
-  <style>body{font-family:Georgia,serif;padding:32px;font-size:13px;color:#222}h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;border:1px solid #ddd;text-align:left}th{background:#f5f5f0}.total{font-size:18px;font-weight:bold;margin:16px 0;color:#2d5a2d}@media print{body{padding:16px}}</style>
-  </head><body>
-  <h1>🌾 Farm Business Expenses</h1>
-  <p style="color:#666;font-size:12px">Exported ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
-  <div class="total">Total Business Expenses: $${total}</div>
-  <h2>Summary by Category</h2>
-  <table><tr><th>Category</th><th>Total</th></tr>${catRows}</table>
-  <h2>All Business Transactions (${biz.length})</h2>
-  <table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>${txRows}</table>
-  </body></html>`);
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Farm Business Expenses</title><style>body{font-family:Georgia,serif;padding:32px;font-size:13px}h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;border:1px solid #ddd;text-align:left}th{background:#f5f5f0}.total{font-size:18px;font-weight:bold;margin:16px 0;color:#2d5a2d}@media print{body{padding:16px}}</style></head><body><h1>🌾 Farm Business Expenses</h1><p style="color:#666;font-size:12px">Exported ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p><div class="total">Total Business Expenses: $${total}</div><h2>Summary by Category</h2><table><tr><th>Category</th><th>Total</th></tr>${catRows}</table><h2>All Business Transactions (${biz.length})</h2><table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>${txRows}</table></body></html>`);
   w.document.close(); w.print();
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
 initKeyUI();
 </script>
 </body>
