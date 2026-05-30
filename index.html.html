@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Expense Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --green-dark: #1e3a1e;
+    --green-mid: #2d5a2d;
+    --green-accent: #4a8c4a;
+    --green-light: #e8f2e8;
+    --green-pale: #f4faf4;
+    --amber: #c17f24;
+    --amber-light: #fdf3e0;
+    --red: #a33232;
+    --red-light: #fdf0f0;
+    --gray-dark: #2c2c2c;
+    --gray-mid: #555;
+    --gray-light: #e8e8e8;
+    --gray-pale: #f8f8f6;
+    --white: #ffffff;
+    --border: #d4d4c8;
+    --shadow: 0 2px 12px rgba(30,58,30,0.08);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-pale);
+    color: var(--gray-dark);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--green-dark);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--green-accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .header h1 {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 1px;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .api-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .api-badge.connected { background: rgba(74,140,74,0.3); color: #7ec87e; border-color: rgba(74,140,74,0.4); }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* API KEY SETUP */
+  .setup-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .setup-card h2 {
+    font-family: 'Lora', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .setup-card p { font-size: 13px; color: var(--gray-mid); margin-bottom: 12px; line-height: 1.5; }
+  .setup-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .setup-row input {
+    flex: 1;
+    min-width: 200px;
+    font-size: 13px;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-pale);
+    color: var(--gray-dark);
+  }
+  .setup-row input:focus { outline: none; border-color: var(--green-accent); background: #fff; }
+  .setup-note { font-size: 11px; color: var(--gray-mid); margin-top: 8px; }
+  .setup-note a { color: var(--green-accent); text-decoration: none; }
+  .setup-note a:hover { text-decoration: underline; }
+
+  /* UPLOAD ZONE */
+  .upload-card {
+    background: var(--white);
+    border: 1.5px dashed var(--green-accent);
+    border-radius: var(--radius);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    box-shadow: var(--shadow);
+  }
+  .upload-card:hover, .upload-card.drag { background: var(--green-pale); border-color: var(--green-mid); }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+  .upload-card h2 {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 6px;
+  }
+  .upload-card p { font-size: 14px; color: var(--gray-mid); margin-top: 4px; }
+  .format-pills { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  .pill {
+    font-size: 12px; font-weight: 500;
+    padding: 4px 14px; border-radius: 99px;
+  }
+  .pill-green { background: var(--green-light); color: var(--green-dark); border: 1px solid #b8d8b8; }
+  .pill-blue { background: #e8f0fd; color: #1a4a9e; border: 1px solid #b8ccf0; }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--gray-dark);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+    transition: background 0.12s, border-color 0.12s;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--gray-pale); border-color: #bbb; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+  .btn-primary:hover { background: var(--green-mid); border-color: var(--green-mid); }
+  .btn-success { background: var(--green-light); color: var(--green-dark); border-color: #b8d8b8; }
+  .btn-success:hover { background: #d4ebd4; }
+  .btn-danger { background: var(--red-light); color: var(--red); border-color: #e8c0c0; }
+  .btn-danger:hover { background: #f5d8d8; }
+  .btn-amber { background: var(--amber-light); color: var(--amber); border-color: #e8d0a0; }
+  .btn-amber:hover { background: #fae8c0; }
+  .btn-sm { font-size: 12px; padding: 5px 12px; }
+
+  /* PROCESSING */
+  .proc-box {
+    display: none;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .proc-spinner {
+    width: 44px; height: 44px;
+    border: 3px solid var(--green-light);
+    border-top-color: var(--green-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .proc-title { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; color: var(--green-dark); margin-bottom: 6px; }
+  .proc-sub { font-size: 13px; color: var(--gray-mid); }
+  .proc-bar-wrap { background: var(--gray-light); border-radius: 99px; height: 6px; max-width: 320px; margin: 16px auto 0; overflow: hidden; }
+  .proc-bar { height: 6px; border-radius: 99px; background: var(--green-accent); transition: width 0.4s; width: 0%; }
+
+  /* ERROR */
+  .err-box {
+    display: none;
+    background: var(--red-light);
+    border: 1px solid #e8c0c0;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--red);
+    margin-bottom: 1rem;
+  }
+
+  /* APP AREA */
+  .app-area { display: none; }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .metric {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .metric-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); margin-bottom: 6px; }
+  .metric-value { font-size: 24px; font-weight: 500; color: var(--gray-dark); font-family: 'Lora', serif; }
+  .metric-value.green { color: var(--green-mid); }
+  .metric-value.amber { color: var(--amber); }
+
+  /* TOOLBAR */
+  .toolbar {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .toolbar input[type=text], .toolbar select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--gray-pale);
+    color: var(--gray-dark);
+    height: 34px;
+  }
+  .toolbar input[type=text]:focus, .toolbar select:focus {
+    outline: none; border-color: var(--green-accent); background: #fff;
+  }
+  .toolbar-right { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .cat-status {
+    font-size: 12px; color: var(--gray-mid);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sm-spin {
+    width: 12px; height: 12px;
+    border: 2px solid var(--green-light);
+    border-top-color: var(--green-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  .prog-mini { background: var(--gray-light); border-radius: 99px; height: 3px; width: 80px; overflow: hidden; }
+  .prog-mini-fill { height: 3px; border-radius: 99px; background: var(--green-accent); transition: width 0.3s; width: 0%; }
+
+  /* TABLE */
+  .table-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+  }
+  .table-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--green-pale);
+  }
+  .table-title { font-family: 'Lora', serif; font-size: 14px; font-weight: 600; color: var(--green-dark); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  th {
+    background: var(--gray-pale);
+    font-weight: 500; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--gray-mid);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--gray-light);
+    vertical-align: middle;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.excluded td { opacity: 0.35; }
+  tr.excluded { background: var(--gray-pale); }
+  tr:hover td { background: var(--green-pale); }
+  tr.excluded:hover td { background: var(--gray-pale); }
+
+  /* TOGGLE */
+  .tog {
+    width: 38px; height: 21px;
+    border-radius: 99px; border: none; cursor: pointer;
+    position: relative; flex-shrink: 0; padding: 0;
+    transition: background 0.2s;
+  }
+  .tog.on { background: var(--green-accent); }
+  .tog.off { background: var(--gray-light); }
+  .tog::after {
+    content: '';
+    position: absolute;
+    width: 15px; height: 15px;
+    border-radius: 50%; background: white;
+    top: 3px; transition: left 0.18s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .tog.on::after { left: 20px; }
+  .tog.off::after { left: 3px; }
+
+  /* CATEGORY SELECT */
+  .cat-sel {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; padding: 4px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--gray-pale);
+    color: var(--gray-dark);
+    width: 100%;
+  }
+  .cat-sel:focus { outline: none; border-color: var(--green-accent); background: #fff; }
+
+  /* AMOUNT */
+  .amount-cell { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* BREAKDOWN */
+  .breakdown-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .breakdown-card h3 {
+    font-family: 'Lora', serif; font-size: 14px; font-weight: 600;
+    color: var(--green-dark); margin-bottom: 14px;
+  }
+  .bk-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .bk-label { min-width: 170px; font-size: 13px; color: var(--gray-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bk-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: var(--gray-light); overflow: hidden; }
+  .bk-bar { height: 6px; border-radius: 3px; }
+  .bk-amt { min-width: 80px; text-align: right; font-size: 13px; font-weight: 500; color: var(--gray-dark); }
+
+  /* EXPORT ROW */
+  .export-row {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  /* FILE TAG */
+  .ftag {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 99px;
+    display: inline-block; margin-right: 6px;
+  }
+  .ftag-pdf { background: #e8f0fd; color: #1a4a9e; }
+  .ftag-csv { background: var(--green-light); color: var(--green-dark); }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 3rem; color: var(--gray-mid); font-size: 14px; }
+
+  /* TIP */
+  .tip { font-size: 12px; color: var(--gray-mid); margin: 8px 0 1rem; padding: 0 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .main { padding: 1rem; }
+    .header { padding: 0 1rem; }
+    .header h1 { font-size: 15px; }
+    .metric-value { font-size: 18px; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .toolbar { gap: 6px; }
+    .export-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="header-icon">🌾</div>
+    <div>
+      <h1>Farm Expense Tracker</h1>
+      <div class="header-sub">Upload a bank statement · AI categorizes · Export for taxes</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="api-badge" id="apiBadge">API key needed</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- API KEY SETUP -->
+  <div class="setup-card" id="setupCard">
+    <h2>🔑 One-time setup — enter your Anthropic API key</h2>
+    <p>This app uses AI to read PDFs and categorize transactions. You need a free Anthropic API key. It's stored only in your browser — never sent anywhere except directly to Anthropic.</p>
+    <div class="setup-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="btn btn-primary" onclick="saveKey()">Save key</button>
+      <button class="btn" onclick="clearKey()" style="color:#a33232">Clear</button>
+    </div>
+    <div class="setup-note">
+      Get a free API key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key. 
+      Usage costs a few cents per statement — typically under $0.05.
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="upload-card" id="uploadZone">
+    <span class="upload-icon">📄</span>
+    <h2>Upload your bank or credit card statement</h2>
+    <div class="format-pills">
+      <span class="pill pill-green">✓ CSV</span>
+      <span class="pill pill-blue">✓ PDF</span>
+    </div>
+    <p>Drag & drop here, or click to choose a file</p>
+    <p style="font-size:12px;margin-top:6px;color:#888">Works with USAA, Chase, Amex, BofA, Capital One, Wells Fargo and most major banks</p>
+    <input type="file" id="fileInput" accept=".csv,.pdf" style="display:none">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Choose file (CSV or PDF)</button>
+      <button class="btn btn-success" onclick="loadSample()">🌱 Load sample farm data</button>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="err-box" id="errBox"></div>
+
+  <!-- PROCESSING -->
+  <div class="proc-box" id="procBox">
+    <div class="proc-spinner"></div>
+    <div class="proc-title" id="procTitle">Reading your statement...</div>
+    <div class="proc-sub" id="procSub">This may take a few seconds</div>
+    <div class="proc-bar-wrap"><div class="proc-bar" id="procBar"></div></div>
+  </div>
+
+  <!-- APP -->
+  <div class="app-area" id="appArea">
+
+    <div class="summary-grid">
+      <div class="metric">
+        <div class="metric-label">Total transactions</div>
+        <div class="metric-value" id="mTotal">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Business total</div>
+        <div class="metric-value green" id="mBiz">$0.00</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Personal (excluded)</div>
+        <div class="metric-value amber" id="mPers">$0.00</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Business items</div>
+        <div class="metric-value green" id="mBizCt">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="srch" placeholder="🔍 Search transactions..." style="width:200px" oninput="renderTable()">
+      <select id="catF" onchange="renderTable()"><option value="">All categories</option></select>
+      <select id="statF" onchange="renderTable()">
+        <option value="">All items</option>
+        <option value="b">Business only</option>
+        <option value="p">Personal only</option>
+      </select>
+      <div class="cat-status" id="catStatus" style="display:none">
+        <span class="sm-spin"></span>
+        <span id="catMsg">Categorizing...</span>
+        <div class="prog-mini"><div class="prog-mini-fill" id="catProg"></div></div>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-sm btn-success" onclick="markAll(true)">✓ All business</button>
+        <button class="btn btn-sm btn-danger" onclick="markAll(false)">✕ All personal</button>
+        <button class="btn btn-sm" onclick="resetApp()">↩ New file</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title" id="tableTitle">Transactions</div>
+        <div style="font-size:12px;color:var(--gray-mid)" id="tableCount"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:46px">Include</th>
+              <th style="width:68px">Date</th>
+              <th>Description</th>
+              <th style="width:90px;text-align:right">Amount</th>
+              <th style="width:160px">Category</th>
+            </tr>
+          </thead>
+          <tbody id="tBody">
+            <tr><td colspan="5"><div class="empty-state">Upload a file to get started</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="tip">💡 Green toggle = included as business expense. Gray = personal, excluded from totals. Change the category dropdown to re-classify any transaction.</p>
+
+    <div class="breakdown-card" id="bkCard" style="display:none">
+      <h3>Business expense breakdown</h3>
+      <div id="bkBody"></div>
+    </div>
+
+    <div class="export-row">
+      <button class="btn btn-primary" onclick="exportCSV()">⬇ Export business expenses (CSV)</button>
+      <button class="btn btn-amber" onclick="printSummary()">🖨 Print summary</button>
+      <button class="btn" onclick="exportAll()">⬇ Export all transactions (CSV)</button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+const CATS = [
+  'Feed & Hay','Vet & Medical','Farm Supplies','Equipment & Tools',
+  'Fuel & Transport','Repairs & Maintenance','Utilities','Insurance',
+  'Seeds & Plants','Labor',
+  'Groceries','Dining & Coffee','Shopping','Entertainment & Subscriptions',
+  'Pharmacy & Health','Kids & Family','Finance & Transfers','Other'
+];
+const BIZ_CATS = new Set([
+  'Feed & Hay','Vet & Medical','Farm Supplies','Equipment & Tools',
+  'Fuel & Transport','Repairs & Maintenance','Utilities','Insurance',
+  'Seeds & Plants','Labor'
+]);
+const CAT_COLORS = {
+  'Feed & Hay':'#3B6D11','Vet & Medical':'#185FA5','Farm Supplies':'#854F0B',
+  'Equipment & Tools':'#534AB7','Fuel & Transport':'#5F5E5A',
+  'Repairs & Maintenance':'#0F6E56','Utilities':'#993C1D','Insurance':'#3B6D11',
+  'Seeds & Plants':'#3B6D11','Labor':'#633806',
+  'Groceries':'#888780','Dining & Coffee':'#BA7517','Shopping':'#D85A30',
+  'Entertainment & Subscriptions':'#D4537E','Pharmacy & Health':'#378ADD',
+  'Kids & Family':'#1D9E75','Finance & Transfers':'#888780','Other':'#888780'
+};
+
+const SAMPLE = [
+  {date:'2025-01-03',desc:'TRACTOR SUPPLY CO #881',amount:247.50,cat:'Farm Supplies',isBiz:true},
+  {date:'2025-01-05',desc:'WALMART SUPERCENTER',amount:89.22,cat:'Groceries',isBiz:false},
+  {date:'2025-01-07',desc:'DR SARAH MILLS DVM',amount:320.00,cat:'Vet & Medical',isBiz:true},
+  {date:'2025-01-08',desc:'STARBUCKS #4421',amount:12.75,cat:'Dining & Coffee',isBiz:false},
+  {date:'2025-01-10',desc:'SOUTHERN STATES COOP',amount:415.00,cat:'Feed & Hay',isBiz:true},
+  {date:'2025-01-12',desc:'HOME DEPOT #2210',amount:183.45,cat:'Repairs & Maintenance',isBiz:true},
+  {date:'2025-01-14',desc:'AMAZON.COM',amount:54.99,cat:'Farm Supplies',isBiz:true},
+  {date:'2025-01-15',desc:'SHEETZ #445 FUEL',amount:78.30,cat:'Fuel & Transport',isBiz:true},
+  {date:'2025-01-17',desc:'NETFLIX.COM',amount:15.99,cat:'Entertainment & Subscriptions',isBiz:false},
+  {date:'2025-01-18',desc:'RURAL KING STORE',amount:129.00,cat:'Farm Supplies',isBiz:true},
+  {date:'2025-01-20',desc:'CHIPOTLE MEXICAN GRILL',amount:23.40,cat:'Dining & Coffee',isBiz:false},
+  {date:'2025-01-21',desc:'VALLEY VET SUPPLY',amount:87.60,cat:'Vet & Medical',isBiz:true},
+  {date:'2025-01-23',desc:'MURDOCHS RANCH & HOME',amount:362.10,cat:'Farm Supplies',isBiz:true},
+  {date:'2025-01-24',desc:'LOWES #1842',amount:95.33,cat:'Repairs & Maintenance',isBiz:true},
+  {date:'2025-01-26',desc:'TARGET STORE',amount:67.80,cat:'Shopping',isBiz:false},
+  {date:'2025-01-27',desc:'AGWAY FARM & GARDEN',amount:510.00,cat:'Feed & Hay',isBiz:true},
+  {date:'2025-01-28',desc:'PIZZA HUT',amount:28.50,cat:'Dining & Coffee',isBiz:false},
+  {date:'2025-01-29',desc:'NATIONAL FARMERS UNION INS',amount:450.00,cat:'Insurance',isBiz:true},
+  {date:'2025-01-30',desc:'BP FUEL STATION',amount:62.10,cat:'Fuel & Transport',isBiz:true},
+  {date:'2025-01-31',desc:'APPLE.COM/BILL',amount:9.99,cat:'Entertainment & Subscriptions',isBiz:false},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let txns = [];
+let apiKey = localStorage.getItem('farm_tracker_api_key') || '';
+
+// ── API KEY ──────────────────────────────────────────────────────────────────
+function initKeyUI() {
+  if (apiKey) {
+    document.getElementById('apiKeyInput').value = apiKey;
+    document.getElementById('apiBadge').textContent = 'AI ready';
+    document.getElementById('apiBadge').className = 'api-badge connected';
+    document.getElementById('setupCard').style.display = 'none';
+  }
+}
+function saveKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k.startsWith('sk-ant')) { showErr('That doesn\'t look like a valid Anthropic API key (should start with sk-ant-).'); return; }
+  apiKey = k;
+  localStorage.setItem('farm_tracker_api_key', k);
+  document.getElementById('apiBadge').textContent = 'AI ready ✓';
+  document.getElementById('apiBadge').className = 'api-badge connected';
+  document.getElementById('setupCard').style.display = 'none';
+  showErr('');
+}
+function clearKey() {
+  apiKey = '';
+  localStorage.removeItem('farm_tracker_api_key');
+  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('apiBadge').textContent = 'API key needed';
+  document.getElementById('apiBadge').className = 'api-badge';
+  document.getElementById('setupCard').style.display = '';
+}
+
+// ── UI HELPERS ───────────────────────────────────────────────────────────────
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = msg; b.style.display = msg ? 'block' : 'none';
+}
+function setProc(title, sub, pct) {
+  document.getElementById('procTitle').textContent = title;
+  document.getElementById('procSub').textContent = sub || '';
+  if (pct !== undefined) document.getElementById('procBar').style.width = pct + '%';
+}
+function showProc() {
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('appArea').style.display = 'none';
+  document.getElementById('procBox').style.display = 'block';
+}
+function showApp(name, type) {
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('procBox').style.display = 'none';
+  document.getElementById('appArea').style.display = 'block';
+  const tag = type === 'PDF'
+    ? '<span class="ftag ftag-pdf">PDF</span>'
+    : '<span class="ftag ftag-csv">CSV</span>';
+  document.getElementById('tableTitle').innerHTML = tag + (name || 'Transactions');
+}
+function resetApp() {
+  txns = [];
+  document.getElementById('uploadZone').style.display = '';
+  document.getElementById('appArea').style.display = 'none';
+  document.getElementById('procBox').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  showErr('');
+}
+
+// ── FILE HANDLING ────────────────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0]; if (f) handleFile(f);
+});
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('drag'));
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+});
+
+async function handleFile(file) {
+  const name = file.name.toLowerCase();
+  const isPDF = name.endsWith('.pdf') || file.type === 'application/pdf';
+  const isCSV = name.endsWith('.csv') || file.type.includes('csv') || file.type.includes('text');
+  if (!isPDF && !isCSV) { showErr('Please upload a CSV or PDF file.'); return; }
+  isPDF ? await handlePDF(file) : await handleCSV(file);
+}
+
+// ── CSV ──────────────────────────────────────────────────────────────────────
+async function handleCSV(file) {
+  showProc(); setProc('Reading CSV...', 'Parsing your transactions', 20);
+  try {
+    const text = await file.text();
+    const rows = parseCSV(text);
+    if (!rows || rows.length === 0) {
+      showErr('Could not find transactions. Make sure your CSV has Date, Description, and Amount columns.'); resetApp(); return;
+    }
+    txns = rows;
+    showApp(file.name, 'CSV'); updateAll();
+    await aiCategorize();
+  } catch(e) { showErr('Error reading CSV: ' + e.message); resetApp(); }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return null;
+  const hdr = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+  const di = hdr.findIndex(h => h.includes('date'));
+  const xi = hdr.findIndex(h => ['desc','merchant','memo','name','payee','narration'].some(k => h.includes(k)));
+  const ai = hdr.findIndex(h => ['amount','debit','charge','withdrawal'].some(k => h.includes(k)));
+  if (di < 0 || ai < 0) return null;
+  const out = [];
+  lines.slice(1).forEach((line, i) => {
+    const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || line.split(',');
+    const c = n => (cols[n] || '').replace(/"/g, '').trim();
+    const raw = c(ai).replace(/[$,\s()]/g, '');
+    const amt = parseFloat(raw.replace('-',''));
+    if (!isNaN(amt) && amt > 0) {
+      out.push({ id: i, date: c(di), desc: c(xi >= 0 ? xi : 1), amount: amt, cat: 'Other', isBiz: false });
+    }
+  });
+  return out.length ? out : null;
+}
+
+// ── PDF ──────────────────────────────────────────────────────────────────────
+async function handlePDF(file) {
+  if (!apiKey) {
+    showErr('Please enter your Anthropic API key above before uploading a PDF.');
+    document.getElementById('setupCard').style.display = '';
+    return;
+  }
+  showProc(); setProc('Reading PDF...', 'Extracting text from your statement', 15);
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    let fullText = '';
+    if (typeof pdfjsLib !== 'undefined') {
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      for (let p = 1; p <= Math.min(pdf.numPages, 25); p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        fullText += content.items.map(i => i.str).join(' ') + '\n';
+        setProc('Reading PDF...', `Page ${p} of ${pdf.numPages}`, 15 + Math.round((p / pdf.numPages) * 25));
+      }
+    }
+    if (!fullText.trim()) {
+      showErr('Could not extract text from this PDF. It may be a scanned image. Please try downloading a CSV from your bank instead.'); resetApp(); return;
+    }
+    setProc('AI extracting transactions...', 'Claude is parsing the statement', 45);
+    const extracted = await extractPDFTransactions(fullText, file.name);
+    if (!extracted || extracted.length === 0) {
+      showErr('No transactions found in this PDF. Make sure it is a bank or credit card statement (not a scanned paper copy).'); resetApp(); return;
+    }
+    txns = extracted;
+    showApp(file.name, 'PDF'); updateAll();
+    setProc('Categorizing...', 'AI is labeling your transactions', 75);
+    await aiCategorize();
+  } catch(e) {
+    console.error(e);
+    showErr('Could not process PDF: ' + e.message + '. Try downloading a CSV from your bank instead.'); resetApp();
+  }
+}
+
+async function extractPDFTransactions(text, filename) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514', max_tokens: 4000,
+      system: `You parse bank and credit card statement text. Extract every purchase/charge/debit transaction. Return ONLY a valid JSON array. Each object: date (string as shown), desc (clean merchant name, no codes), amount (positive number). Skip: payments received, credits, deposits, balance rows, interest, fees headers, totals. Return ONLY the JSON array, no markdown, no explanation.`,
+      messages: [{ role: 'user', content: `Extract all debit/purchase transactions from this statement text:\n\n${text.slice(0, 14000)}` }]
+    })
+  });
+  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'API error ' + resp.status); }
+  const data = await resp.json();
+  const raw = data.content?.find(b => b.type === 'text')?.text || '[]';
+  const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+  return parsed.filter(t => t.amount > 0 && t.desc).map((t, i) => ({
+    id: i, date: String(t.date || ''), desc: String(t.desc || ''),
+    amount: parseFloat(t.amount) || 0, cat: 'Other', isBiz: false
+  }));
+}
+
+// ── AI CATEGORIZE ────────────────────────────────────────────────────────────
+async function aiCategorize() {
+  if (!apiKey || !txns.length) return;
+  const cs = document.getElementById('catStatus');
+  cs.style.display = 'flex';
+  const BATCH = 20;
+  for (let i = 0; i < txns.length; i += BATCH) {
+    const slice = txns.slice(i, i + BATCH);
+    const pct = Math.round((i / txns.length) * 100);
+    document.getElementById('catProg').style.width = pct + '%';
+    document.getElementById('catMsg').textContent = `Categorizing ${i+1}–${Math.min(i+BATCH, txns.length)} of ${txns.length}...`;
+    const payload = slice.map(t => `${t.id}|${t.desc}|$${t.amount}`).join('\n');
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514', max_tokens: 800,
+          system: `You categorize transactions for a small farm business. Categories: ${CATS.join(', ')}. Farm vendors (Tractor Supply, feed stores, co-ops, vets, farm supply, rural supply, fencing, seeds, livestock, hay) → appropriate farm category. Personal (restaurants, coffee shops, streaming, clothing, entertainment, personal groceries) → appropriate personal category. Return ONLY JSON: {"id":"category"} for each transaction ID. Nothing else.`,
+          messages: [{ role: 'user', content: `Categorize:\n${payload}` }]
+        })
+      });
+      const data = await resp.json();
+      const raw = data.content?.find(b => b.type === 'text')?.text || '{}';
+      const cats = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      slice.forEach(t => {
+        const c = cats[String(t.id)];
+        if (c && CATS.includes(c)) { t.cat = c; t.isBiz = BIZ_CATS.has(c); }
+      });
+      updateAll();
+    } catch(e) { console.error('Cat error', e); }
+  }
+  document.getElementById('catProg').style.width = '100%';
+  setTimeout(() => { cs.style.display = 'none'; }, 800);
+}
+
+// ── SAMPLE ───────────────────────────────────────────────────────────────────
+function loadSample() {
+  txns = SAMPLE.map((t, i) => ({ ...t, id: i }));
+  showApp('Sample Farm Data (Jan 2025)', 'CSV');
+  updateAll();
+}
+
+// ── ACTIONS ──────────────────────────────────────────────────────────────────
+function toggle(id) { const t = txns.find(x => x.id === id); if (t) { t.isBiz = !t.isBiz; updateAll(); } }
+function updateCat(id, cat) {
+  const t = txns.find(x => x.id === id);
+  if (t) { t.cat = cat; t.isBiz = BIZ_CATS.has(cat); updateAll(); }
+}
+function markAll(biz) { getFiltered().forEach(t => t.isBiz = biz); updateAll(); }
+
+function getFiltered() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const c = document.getElementById('catF').value;
+  const st = document.getElementById('statF').value;
+  return txns.filter(t => {
+    if (s && !t.desc.toLowerCase().includes(s) && !t.cat.toLowerCase().includes(s)) return false;
+    if (c && t.cat !== c) return false;
+    if (st === 'b' && !t.isBiz) return false;
+    if (st === 'p' && t.isBiz) return false;
+    return true;
+  });
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function updateAll() { updateSummary(); renderTable(); renderBreakdown(); }
+
+function updateSummary() {
+  const biz = txns.filter(t => t.isBiz), pers = txns.filter(t => !t.isBiz);
+  document.getElementById('mTotal').textContent = txns.length;
+  document.getElementById('mBiz').textContent = '$' + biz.reduce((s, t) => s + t.amount, 0).toFixed(2);
+  document.getElementById('mPers').textContent = '$' + pers.reduce((s, t) => s + t.amount, 0).toFixed(2);
+  document.getElementById('mBizCt').textContent = biz.length;
+  const cf = document.getElementById('catF'), prev = cf.value;
+  cf.innerHTML = '<option value="">All categories</option>';
+  [...new Set(txns.map(t => t.cat))].sort().forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; cf.appendChild(o);
+  });
+  cf.value = prev;
+}
+
+function renderTable() {
+  const rows = getFiltered(), tb = document.getElementById('tBody');
+  document.getElementById('tableCount').textContent = rows.length + ' of ' + txns.length + ' transactions';
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty-state">No transactions match your filters</div></td></tr>'; return; }
+  tb.innerHTML = rows.map(t => {
+    const opts = CATS.map(c => `<option${t.cat === c ? ' selected' : ''}>${c}</option>`).join('');
+    return `<tr class="${t.isBiz ? '' : 'excluded'}">
+      <td style="text-align:center"><button class="tog ${t.isBiz ? 'on' : 'off'}" onclick="toggle(${t.id})" aria-label="${t.isBiz ? 'Mark personal' : 'Mark business'}"></button></td>
+      <td style="color:var(--gray-mid);font-size:12px">${t.date}</td>
+      <td title="${t.desc}">${t.desc}</td>
+      <td class="amount-cell">$${t.amount.toFixed(2)}</td>
+      <td><select class="cat-sel" onchange="updateCat(${t.id}, this.value)">${opts}</select></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBreakdown() {
+  const biz = txns.filter(t => t.isBiz);
+  const bc = document.getElementById('bkCard');
+  if (!biz.length) { bc.style.display = 'none'; return; }
+  bc.style.display = 'block';
+  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat] || 0) + t.amount);
+  const sorted = Object.entries(tot).sort((a, b) => b[1] - a[1]), max = sorted[0][1];
+  document.getElementById('bkBody').innerHTML = sorted.map(([c, a]) =>
+    `<div class="bk-row">
+      <div class="bk-label">${c}</div>
+      <div class="bk-bar-bg"><div class="bk-bar" style="width:${Math.round(a/max*100)}%;background:${CAT_COLORS[c]||'#888'}"></div></div>
+      <div class="bk-amt">$${a.toFixed(2)}</div>
+    </div>`
+  ).join('');
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const biz = txns.filter(t => t.isBiz);
+  if (!biz.length) { alert('No business transactions selected.'); return; }
+  downloadCSV(biz, 'farm_business_expenses.csv');
+}
+function exportAll() {
+  if (!txns.length) { alert('No transactions loaded.'); return; }
+  downloadCSV(txns, 'all_transactions.csv');
+}
+function downloadCSV(rows, filename) {
+  const csv = ['Date,Description,Amount,Category,Type',
+    ...rows.map(t => `"${t.date}","${t.desc}",${t.amount.toFixed(2)},"${t.cat}","${t.isBiz ? 'Business' : 'Personal'}"`)
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
+function printSummary() {
+  const biz = txns.filter(t => t.isBiz), total = biz.reduce((s, t) => s + t.amount, 0).toFixed(2);
+  const tot = {}; biz.forEach(t => tot[t.cat] = (tot[t.cat] || 0) + t.amount);
+  const catRows = Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`<tr><td>${c}</td><td style="text-align:right">$${a.toFixed(2)}</td></tr>`).join('');
+  const txRows = biz.map(t=>`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.cat}</td><td style="text-align:right">$${t.amount.toFixed(2)}</td></tr>`).join('');
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Farm Business Expenses</title>
+  <style>body{font-family:Georgia,serif;padding:32px;font-size:13px;color:#222}h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;border:1px solid #ddd;text-align:left}th{background:#f5f5f0}.total{font-size:18px;font-weight:bold;margin:16px 0;color:#2d5a2d}@media print{body{padding:16px}}</style>
+  </head><body>
+  <h1>🌾 Farm Business Expenses</h1>
+  <p style="color:#666;font-size:12px">Exported ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
+  <div class="total">Total Business Expenses: $${total}</div>
+  <h2>Summary by Category</h2>
+  <table><tr><th>Category</th><th>Total</th></tr>${catRows}</table>
+  <h2>All Business Transactions (${biz.length})</h2>
+  <table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>${txRows}</table>
+  </body></html>`);
+  w.document.close(); w.print();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+initKeyUI();
+</script>
+</body>
+</html>
