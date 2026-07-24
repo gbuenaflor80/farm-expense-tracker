@@ -10,9 +10,7 @@ const CATS = [
   'Marketing & Admin',
   'Fuel & Transport',
   'Meals & Client Meetings',
-  'Debt & Loan Payments', 
-  "Owner's Draw",
-  'Business Transfer',
+  'Debt & Loan Payments',
   'Professional Services',
   'Personal',
   'Other'
@@ -41,8 +39,6 @@ const CAT_COLORS = {
   'Fuel & Transport': '#5F5E5A',
   'Meals & Client Meetings': '#BA7517',
   'Debt & Loan Payments': '#888780',
-  "Owner's Draw": '#888780',
-  'Business Transfer': '#888780',
   'Professional Services': '#633806',
   'Personal': '#888780',
   'Other': '#888780'
@@ -110,7 +106,7 @@ async function categorize(rows, setTxns, setCatMsg) {
     const payload = slice.map(t => `${t.id}|${t.desc}|$${t.amount}`).join('\n');
     try {
       const data = await callClaude({
-        model: 'claude-sonnet-5', max_tokens: 800,
+        model: 'claude-sonnet-4-20250514', max_tokens: 800,
         system: `You categorize transactions for a personal fitness training business called Kinect Fitness & Recovery. Categories: ${CATS.join(', ')}. 
 Rules:
 - Replit, Anthropic, Claude, software tools → Software & Subscriptions
@@ -120,9 +116,7 @@ Rules:
 - Amazon, training gear, equipment → Training Equipment & Supplies
 - Starbucks (client meetings/admin work) → Meals & Client Meetings
 - Wawa, Sheetz, fuel stations → Fuel & Transport
-- AMEX payment, Chase payment → Debt & Loan Payments
-- SoFi transfer → Owner's Draw (owner equity distribution, not a business expense)
-- Axos → Business Transfer (transfer to a separate business savings account, not a business expense)
+- AMEX payment, Chase payment, SoFi transfer, Axos → Debt & Loan Payments
 - Personal items → Personal
 Return ONLY JSON like {"0":"Software & Subscriptions"}. Nothing else.`,
         messages: [{ role: 'user', content: `Categorize:\n${payload}` }]
@@ -169,7 +163,7 @@ export default function KinectTracker() {
         const b64 = await fileToBase64(file);
         setProcPct(40);
         const data = await callClaude({
-          model: 'claude-sonnet-5', max_tokens: 4000,
+          model: 'claude-sonnet-4-20250514', max_tokens: 4000,
           system: 'You read bank statements. Extract every debit/purchase transaction. Return ONLY a JSON array. Each object: date (string as shown), desc (clean merchant name), amount (positive number). Skip credits, deposits, balance rows, interest.',
           messages: [{ role: 'user', content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
