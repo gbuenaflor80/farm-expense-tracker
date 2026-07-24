@@ -10,7 +10,9 @@ const CATS = [
   'Marketing & Admin',
   'Fuel & Transport',
   'Meals & Client Meetings',
-  'Debt & Loan Payments',
+  'Debt & Loan Payments', 
+  "Owner's Draw",
+  'Business Transfer',
   'Professional Services',
   'Personal',
   'Other'
@@ -39,6 +41,8 @@ const CAT_COLORS = {
   'Fuel & Transport': '#5F5E5A',
   'Meals & Client Meetings': '#BA7517',
   'Debt & Loan Payments': '#888780',
+  "Owner's Draw": '#888780',
+  'Business Transfer': '#888780',
   'Professional Services': '#633806',
   'Personal': '#888780',
   'Other': '#888780'
@@ -116,7 +120,9 @@ Rules:
 - Amazon, training gear, equipment → Training Equipment & Supplies
 - Starbucks (client meetings/admin work) → Meals & Client Meetings
 - Wawa, Sheetz, fuel stations → Fuel & Transport
-- AMEX payment, Chase payment, SoFi transfer, Axos → Debt & Loan Payments
+- AMEX payment, Chase payment → Debt & Loan Payments
+- SoFi transfer → Owner's Draw (owner equity distribution, not a business expense)
+- Axos → Business Transfer (transfer to a separate business savings account, not a business expense)
 - Personal items → Personal
 Return ONLY JSON like {"0":"Software & Subscriptions"}. Nothing else.`,
         messages: [{ role: 'user', content: `Categorize:\n${payload}` }]
