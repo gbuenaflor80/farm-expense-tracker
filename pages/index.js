@@ -106,7 +106,7 @@ async function categorize(rows, setTxns, setCatMsg) {
     const payload = slice.map(t => `${t.id}|${t.desc}|$${t.amount}`).join('\n');
     try {
       const data = await callClaude({
-        model: 'claude-sonnet-4-20250514', max_tokens: 800,
+        model: 'claude-sonnet-5', max_tokens: 800,
         system: `You categorize transactions for a personal fitness training business called Kinect Fitness & Recovery. Categories: ${CATS.join(', ')}. 
 Rules:
 - Replit, Anthropic, Claude, software tools → Software & Subscriptions
@@ -163,7 +163,7 @@ export default function KinectTracker() {
         const b64 = await fileToBase64(file);
         setProcPct(40);
         const data = await callClaude({
-          model: 'claude-sonnet-4-20250514', max_tokens: 4000,
+          model: 'claude-sonnet-5', max_tokens: 4000,
           system: 'You read bank statements. Extract every debit/purchase transaction. Return ONLY a JSON array. Each object: date (string as shown), desc (clean merchant name), amount (positive number). Skip credits, deposits, balance rows, interest.',
           messages: [{ role: 'user', content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
