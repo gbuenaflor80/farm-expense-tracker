@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 
 const CATS = [
+  'Revenue',
   'Software & Subscriptions',
   'Facility & Training Space',
   'Payroll & Taxes',
@@ -11,6 +12,8 @@ const CATS = [
   'Fuel & Transport',
   'Meals & Client Meetings',
   'Debt & Loan Payments',
+  "Owner's Draw",
+  'Business Transfer',
   'Professional Services',
   'Personal',
   'Other'
@@ -29,7 +32,10 @@ const BIZ_CATS = new Set([
   'Other'
 ]);
 
+const REV_CATS = new Set(['Revenue']);
+
 const CAT_COLORS = {
+  'Revenue': '#15803D',
   'Software & Subscriptions': '#534AB7',
   'Facility & Training Space': '#185FA5',
   'Payroll & Taxes': '#3B6D11',
@@ -39,25 +45,30 @@ const CAT_COLORS = {
   'Fuel & Transport': '#5F5E5A',
   'Meals & Client Meetings': '#BA7517',
   'Debt & Loan Payments': '#888780',
+  "Owner's Draw": '#888780',
+  'Business Transfer': '#888780',
   'Professional Services': '#633806',
   'Personal': '#888780',
   'Other': '#888780'
 };
 
 const SAMPLE = [
-  {date:'06/01/2026',desc:'REPLIT INC',amount:50.51,cat:'Software & Subscriptions',isBiz:true},
-  {date:'06/02/2026',desc:'GUSTO FEE',amount:88.00,cat:'Payroll & Taxes',isBiz:true},
-  {date:'06/02/2026',desc:'PAYMENTS Sportrock Sterling',amount:160.00,cat:'Facility & Training Space',isBiz:true},
-  {date:'06/03/2026',desc:'STARBUCKS STORE 07387 Sterling',amount:3.34,cat:'Meals & Client Meetings',isBiz:true},
-  {date:'06/04/2026',desc:'Deposit Axos Bank',amount:2000.00,cat:'Debt & Loan Payments',isBiz:false},
-  {date:'06/08/2026',desc:'AMAZON.COM',amount:28.61,cat:'Training Equipment & Supplies',isBiz:true},
-  {date:'06/09/2026',desc:'ANTHROPIC CLAUDE SUB',amount:20.00,cat:'Software & Subscriptions',isBiz:true},
-  {date:'06/09/2026',desc:'AUTOPAYBUS CHASE CREDIT CRD',amount:1000.00,cat:'Debt & Loan Payments',isBiz:false},
-  {date:'06/15/2026',desc:'NEXT INSUR GEN L',amount:18.33,cat:'Insurance & Benefits',isBiz:true},
-  {date:'06/15/2026',desc:'SHEETZ 2666 Sterling',amount:51.36,cat:'Fuel & Transport',isBiz:true},
-  {date:'06/23/2026',desc:'HEALTHEQUITY INC',amount:100.00,cat:'Insurance & Benefits',isBiz:true},
-  {date:'06/29/2026',desc:'GUSTO TAX',amount:468.61,cat:'Payroll & Taxes',isBiz:true},
-  {date:'06/29/2026',desc:'GUSTO NET PAYROLL',amount:2222.64,cat:'Payroll & Taxes',isBiz:true},
+  {date:'06/01/2026',desc:'ZELLE FROM J SMITH',amount:200.00,direction:'credit',cat:'Revenue',isBiz:false,isRevenue:true},
+  {date:'06/02/2026',desc:'SQUARE DEPOSIT',amount:450.00,direction:'credit',cat:'Revenue',isBiz:false,isRevenue:true},
+  {date:'06/01/2026',desc:'REPLIT INC',amount:50.51,direction:'debit',cat:'Software & Subscriptions',isBiz:true,isRevenue:false},
+  {date:'06/02/2026',desc:'GUSTO FEE',amount:88.00,direction:'debit',cat:'Payroll & Taxes',isBiz:true,isRevenue:false},
+  {date:'06/02/2026',desc:'PAYMENTS Sportrock Sterling',amount:160.00,direction:'debit',cat:'Facility & Training Space',isBiz:true,isRevenue:false},
+  {date:'06/03/2026',desc:'STARBUCKS STORE 07387 Sterling',amount:3.34,direction:'debit',cat:'Meals & Client Meetings',isBiz:true,isRevenue:false},
+  {date:'06/04/2026',desc:'Deposit Axos Bank',amount:2000.00,direction:'credit',cat:'Business Transfer',isBiz:false,isRevenue:false},
+  {date:'06/08/2026',desc:'AMAZON.COM',amount:28.61,direction:'debit',cat:'Training Equipment & Supplies',isBiz:true,isRevenue:false},
+  {date:'06/09/2026',desc:'ANTHROPIC CLAUDE SUB',amount:20.00,direction:'debit',cat:'Software & Subscriptions',isBiz:true,isRevenue:false},
+  {date:'06/09/2026',desc:'AUTOPAYBUS CHASE CREDIT CRD',amount:1000.00,direction:'debit',cat:'Debt & Loan Payments',isBiz:false,isRevenue:false},
+  {date:'06/15/2026',desc:'NEXT INSUR GEN L',amount:18.33,direction:'debit',cat:'Insurance & Benefits',isBiz:true,isRevenue:false},
+  {date:'06/15/2026',desc:'SHEETZ 2666 Sterling',amount:51.36,direction:'debit',cat:'Fuel & Transport',isBiz:true,isRevenue:false},
+  {date:'06/16/2026',desc:'ZELLE FROM M GARCIA',amount:320.00,direction:'credit',cat:'Revenue',isBiz:false,isRevenue:true},
+  {date:'06/23/2026',desc:'HEALTHEQUITY INC',amount:100.00,direction:'debit',cat:'Insurance & Benefits',isBiz:true,isRevenue:false},
+  {date:'06/29/2026',desc:'GUSTO TAX',amount:468.61,direction:'debit',cat:'Payroll & Taxes',isBiz:true,isRevenue:false},
+  {date:'06/29/2026',desc:'GUSTO NET PAYROLL',amount:2222.64,direction:'debit',cat:'Payroll & Taxes',isBiz:true,isRevenue:false},
 ];
 
 async function callClaude(body) {
@@ -85,15 +96,39 @@ function parseCSV(text) {
   const hdr = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
   const di = hdr.findIndex(h => h.includes('date'));
   const xi = hdr.findIndex(h => ['desc','merchant','memo','name','payee','narration','description'].some(k => h.includes(k)));
-  const ai = hdr.findIndex(h => ['amount','debit','charge','withdrawal'].some(k => h.includes(k)));
-  if (di < 0 || ai < 0) return null;
+  const debitIdx = hdr.findIndex(h => ['debit', 'withdrawal', 'charge'].some(k => h.includes(k)) && !h.includes('credit'));
+  const creditIdx = hdr.findIndex(h => ['credit', 'deposit'].some(k => h.includes(k)));
+  const amtIdx = hdr.findIndex(h => h.includes('amount'));
+  if (di < 0) return null;
   const out = [];
   lines.slice(1).forEach((line, i) => {
-    const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || line.split(',');
+    const cols = line.match(/("[^"]*"|[^,]+)(?=,|$)/g) || line.split(',');
     const c = n => (cols[n] || '').replace(/"/g, '').trim();
-    const amt = parseFloat(c(ai).replace(/[$,\s()]/g, '').replace('-', ''));
-    if (!isNaN(amt) && amt > 0)
-      out.push({ id: i, date: c(di), desc: c(xi >= 0 ? xi : 1), amount: amt, cat: 'Other', isBiz: false });
+
+    let amount = 0, direction = null;
+
+    if (debitIdx >= 0 || creditIdx >= 0) {
+      const dVal = debitIdx >= 0 ? parseFloat(c(debitIdx).replace(/[$,\s()]/g, '')) : NaN;
+      const cVal = creditIdx >= 0 ? parseFloat(c(creditIdx).replace(/[$,\s()]/g, '')) : NaN;
+      if (!isNaN(dVal) && dVal > 0) { amount = dVal; direction = 'debit'; }
+      else if (!isNaN(cVal) && cVal > 0) { amount = cVal; direction = 'credit'; }
+    }
+
+    if (direction === null && amtIdx >= 0) {
+      const rawStr = c(amtIdx).replace(/[$,\s]/g, '');
+      const isNeg = rawStr.includes('(') || rawStr.startsWith('-');
+      const val = parseFloat(rawStr.replace(/[()\-]/g, ''));
+      if (!isNaN(val) && val !== 0) { amount = val; direction = isNeg ? 'debit' : 'credit'; }
+    }
+
+    if (direction && amount > 0) {
+      out.push({
+        id: i, date: c(di), desc: c(xi >= 0 ? xi : 1), amount, direction,
+        cat: direction === 'credit' ? 'Revenue' : 'Other',
+        isBiz: false,
+        isRevenue: direction === 'credit'
+      });
+    }
   });
   return out.length ? out : null;
 }
@@ -103,20 +138,24 @@ async function categorize(rows, setTxns, setCatMsg) {
   for (let i = 0; i < rows.length; i += BATCH) {
     const slice = rows.slice(i, i + BATCH);
     setCatMsg(`Categorizing ${i + 1}–${Math.min(i + BATCH, rows.length)} of ${rows.length}...`);
-    const payload = slice.map(t => `${t.id}|${t.desc}|$${t.amount}`).join('\n');
+    const payload = slice.map(t => `${t.id}|${t.direction}|${t.desc}|$${t.amount}`).join('\n');
     try {
       const data = await callClaude({
-        model: 'claude-sonnet-4-20250514', max_tokens: 800,
-        system: `You categorize transactions for a personal fitness training business called Kinect Fitness & Recovery. Categories: ${CATS.join(', ')}. 
+        model: 'claude-sonnet-5', max_tokens: 800,
+        system: `You categorize bank transactions for a personal fitness training business called Kinect Fitness & Recovery. Each line is: id|direction|description|amount, where direction is "debit" (money out) or "credit" (money in). Categories: ${CATS.join(', ')}.
 Rules:
+- credit transactions that look like client payments (Zelle, Venmo, CashApp, Square, Stripe, checks, personal names paying in) → Revenue
+- credit transactions that are transfers between the owner's own accounts (e.g. Axos, other bank names, "transfer", "deposit" from another owned account) → Business Transfer
 - Replit, Anthropic, Claude, software tools → Software & Subscriptions
-- Sportrock, gym facilities, training venues → Facility & Training Space  
+- Sportrock, gym facilities, training venues → Facility & Training Space
 - Gusto payroll, wages, tax payments → Payroll & Taxes
 - HealthEquity, insurance, NEXT INSUR → Insurance & Benefits
 - Amazon, training gear, equipment → Training Equipment & Supplies
 - Starbucks (client meetings/admin work) → Meals & Client Meetings
 - Wawa, Sheetz, fuel stations → Fuel & Transport
-- AMEX payment, Chase payment, SoFi transfer, Axos → Debt & Loan Payments
+- AMEX payment, Chase payment → Debt & Loan Payments
+- SoFi transfer → Owner's Draw (owner equity distribution, not a business expense)
+- Axos → Business Transfer (transfer to a separate business savings account, not a business expense)
 - Personal items → Personal
 Return ONLY JSON like {"0":"Software & Subscriptions"}. Nothing else.`,
         messages: [{ role: 'user', content: `Categorize:\n${payload}` }]
@@ -125,7 +164,9 @@ Return ONLY JSON like {"0":"Software & Subscriptions"}. Nothing else.`,
       const cats = JSON.parse(raw.replace(/```json|```/g, '').trim());
       setTxns(prev => prev.map(t => {
         const cat = cats[String(t.id)];
-        return cat && CATS.includes(cat) ? { ...t, cat, isBiz: BIZ_CATS.has(cat) } : t;
+        return cat && CATS.includes(cat)
+          ? { ...t, cat, isBiz: BIZ_CATS.has(cat), isRevenue: REV_CATS.has(cat) }
+          : t;
       }));
     } catch (e) { console.error('Cat error', e); }
   }
@@ -163,19 +204,25 @@ export default function KinectTracker() {
         const b64 = await fileToBase64(file);
         setProcPct(40);
         const data = await callClaude({
-          model: 'claude-sonnet-4-20250514', max_tokens: 4000,
-          system: 'You read bank statements. Extract every debit/purchase transaction. Return ONLY a JSON array. Each object: date (string as shown), desc (clean merchant name), amount (positive number). Skip credits, deposits, balance rows, interest.',
+          model: 'claude-sonnet-5', max_tokens: 4000,
+          system: 'You read bank statements. Extract every transaction — both debits (purchases/withdrawals) and credits (deposits/incoming payments). Return ONLY a JSON array. Each object: date (string as shown), desc (clean merchant/payer name), amount (positive number), direction ("debit" or "credit"). Skip balance rows and interest.',
           messages: [{ role: 'user', content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
-            { type: 'text', text: 'Extract all debit/purchase transactions as a JSON array.' }
+            { type: 'text', text: 'Extract all transactions (debits and credits) as a JSON array.' }
           ]}]
         });
         const raw = data.content?.find(b => b.type === 'text')?.text || '[]';
         const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-        const extracted = parsed.filter(t => t.amount > 0 && t.desc).map((t, i) => ({
-          id: i, date: String(t.date || ''), desc: String(t.desc || ''),
-          amount: parseFloat(t.amount) || 0, cat: 'Other', isBiz: false
-        }));
+        const extracted = parsed.filter(t => t.amount > 0 && t.desc).map((t, i) => {
+          const direction = t.direction === 'credit' ? 'credit' : 'debit';
+          return {
+            id: i, date: String(t.date || ''), desc: String(t.desc || ''),
+            amount: parseFloat(t.amount) || 0, direction,
+            cat: direction === 'credit' ? 'Revenue' : 'Other',
+            isBiz: false,
+            isRevenue: direction === 'credit'
+          };
+        });
         if (!extracted.length) { setError('No transactions found. Make sure this is a digital PDF from your bank.'); setScreen('upload'); return; }
         setTxns(extracted);
         setScreen('app');
@@ -194,39 +241,54 @@ export default function KinectTracker() {
     }
   };
 
-  const toggle = id => setTxns(prev => prev.map(t => t.id === id ? { ...t, isBiz: !t.isBiz } : t));
-  const updateCat = (id, cat) => setTxns(prev => prev.map(t => t.id === id ? { ...t, cat, isBiz: BIZ_CATS.has(cat) } : t));
+  const toggle = id => setTxns(prev => prev.map(t => {
+    if (t.id !== id) return t;
+    return t.direction === 'credit' ? { ...t, isRevenue: !t.isRevenue } : { ...t, isBiz: !t.isBiz };
+  }));
+
+  const updateCat = (id, cat) => setTxns(prev => prev.map(t =>
+    t.id === id ? { ...t, cat, isBiz: BIZ_CATS.has(cat), isRevenue: REV_CATS.has(cat) } : t
+  ));
 
   const filtered = txns.filter(t => {
     if (search && !t.desc.toLowerCase().includes(search.toLowerCase()) && !t.cat.toLowerCase().includes(search.toLowerCase())) return false;
     if (catFilter && t.cat !== catFilter) return false;
     if (statFilter === 'b' && !t.isBiz) return false;
-    if (statFilter === 'p' && t.isBiz) return false;
+    if (statFilter === 'r' && !t.isRevenue) return false;
+    if (statFilter === 'x' && (t.isBiz || t.isRevenue)) return false;
     return true;
   });
 
-  const markAll = biz => setTxns(prev => prev.map(t => filtered.find(f => f.id === t.id) ? { ...t, isBiz: biz } : t));
+  const markAll = include => setTxns(prev => prev.map(t => {
+    if (!filtered.find(f => f.id === t.id)) return t;
+    return t.direction === 'credit' ? { ...t, isRevenue: include } : { ...t, isBiz: include };
+  }));
+
   const biz = txns.filter(t => t.isBiz);
-  const pers = txns.filter(t => !t.isBiz);
+  const rev = txns.filter(t => t.isRevenue);
+  const excluded = txns.filter(t => !t.isBiz && !t.isRevenue);
   const bizTotal = biz.reduce((s, t) => s + t.amount, 0);
-  const persTotal = pers.reduce((s, t) => s + t.amount, 0);
+  const revTotal = rev.reduce((s, t) => s + t.amount, 0);
+  const excludedTotal = excluded.reduce((s, t) => s + t.amount, 0);
+  const netIncome = revTotal - bizTotal;
   const allCats = [...new Set(txns.map(t => t.cat))].sort();
   const breakdown = Object.entries(biz.reduce((acc, t) => { acc[t.cat] = (acc[t.cat] || 0) + t.amount; return acc; }, {})).sort((a, b) => b[1] - a[1]);
   const maxBk = breakdown[0]?.[1] || 1;
 
   const exportCSV = (rows, fname) => {
-    const csv = ['Date,Description,Amount,Category,Type', ...rows.map(t => `"${t.date}","${t.desc}",${t.amount.toFixed(2)},"${t.cat}","${t.isBiz ? 'Business' : 'Personal'}"`).join('\n')];
+    const typeOf = t => t.isRevenue ? 'Revenue' : t.isBiz ? 'Business Expense' : 'Excluded';
+    const csv = ['Date,Description,Amount,Category,Type', ...rows.map(t => `"${t.date}","${t.desc}",${t.amount.toFixed(2)},"${t.cat}","${typeOf(t)}"`).join('\n')];
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv.join('\n')], { type: 'text/csv' }));
     a.download = fname; a.click();
   };
 
   const printSummary = () => {
-    const total = bizTotal.toFixed(2);
     const catRows = breakdown.map(([c, a]) => `<tr><td>${c}</td><td style="text-align:right">$${a.toFixed(2)}</td></tr>`).join('');
     const txRows = biz.map(t => `<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.cat}</td><td style="text-align:right">$${t.amount.toFixed(2)}</td></tr>`).join('');
+    const revRows = rev.map(t => `<tr><td>${t.date}</td><td>${t.desc}</td><td style="text-align:right">$${t.amount.toFixed(2)}</td></tr>`).join('');
     const w = window.open('', '_blank');
-    w.document.write(`<!DOCTYPE html><html><head><title>Kinect Business Expenses</title><style>body{font-family:Georgia,serif;padding:32px;font-size:13px}h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;border:1px solid #ddd;text-align:left}th{background:#f5f5f0}.total{font-size:18px;font-weight:bold;margin:16px 0;color:#1a3a5c}</style></head><body><h1>💪 Kinect Fitness & Recovery — Business Expenses</h1><p style="color:#666;font-size:12px">Exported ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="total">Total Business Expenses: $${total}</div><h2>Summary by Category</h2><table><tr><th>Category</th><th>Total</th></tr>${catRows}</table><h2>All Business Transactions (${biz.length})</h2><table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>${txRows}</table></body></html>`);
+    w.document.write(`<!DOCTYPE html><html><head><title>Kinect P&L Summary</title><style>body{font-family:Georgia,serif;padding:32px;font-size:13px}h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;border:1px solid #ddd;text-align:left}th{background:#f5f5f0}.pnl{margin:16px 0;padding:16px;background:#f9fafb;border-radius:8px}.pnl div{display:flex;justify-content:space-between;padding:4px 0;font-size:15px}.pnl .net{font-weight:bold;font-size:20px;border-top:2px solid #1a3a5c;margin-top:8px;padding-top:10px;color:#1a3a5c}</style></head><body><h1>💪 Kinect Fitness & Recovery — P&L Summary</h1><p style="color:#666;font-size:12px">Exported ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="pnl"><div><span>Revenue</span><span>$${revTotal.toFixed(2)}</span></div><div><span>Business Expenses</span><span>-$${bizTotal.toFixed(2)}</span></div><div class="net"><span>Net Income</span><span>$${netIncome.toFixed(2)}</span></div></div><h2>Revenue (${rev.length})</h2><table><tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr>${revRows}</table><h2>Expenses by Category</h2><table><tr><th>Category</th><th>Total</th></tr>${catRows}</table><h2>All Business Expenses (${biz.length})</h2><table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>${txRows}</table></body></html>`);
     w.document.close(); w.print();
   };
 
@@ -310,19 +372,27 @@ export default function KinectTracker() {
           {/* APP */}
           {screen === 'app' && (
             <>
-              {/* SUMMARY */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: '1.5rem' }}>
-                {[
-                  { label: 'Transactions', val: txns.length, color: C.navy },
-                  { label: 'Business total', val: '$' + bizTotal.toFixed(2), color: C.green },
-                  { label: 'Excluded', val: '$' + persTotal.toFixed(2), color: C.accent },
-                  { label: 'Business items', val: biz.length, color: C.green },
-                ].map(m => (
-                  <div key={m.label} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px 16px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', color: C.gray, marginBottom: 6 }}>{m.label}</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: m.color }}>{m.val}</div>
+              {/* P&L SUMMARY */}
+              <div style={{ background: C.navy, borderRadius: 12, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', color: C.white }}>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>Profit & Loss Summary</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4 }}>Revenue</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: '#4ade80' }}>${revTotal.toFixed(2)}</div>
                   </div>
-                ))}
+                  <div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4 }}>Business Expenses</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: '#f87171' }}>${bizTotal.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4 }}>Net Income</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: netIncome >= 0 ? '#4ade80' : '#f87171' }}>${netIncome.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4 }}>Excluded</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>${excludedTotal.toFixed(2)}</div>
+                  </div>
+                </div>
               </div>
 
               {/* TOOLBAR */}
@@ -337,16 +407,17 @@ export default function KinectTracker() {
                 <select value={statFilter} onChange={e => setStatFilter(e.target.value)}
                   style={{ fontSize: 13, padding: '6px 10px', border: `1px solid ${C.border}`, borderRadius: 6, background: C.bg, height: 34 }}>
                   <option value="">All items</option>
-                  <option value="b">Business only</option>
-                  <option value="p">Excluded only</option>
+                  <option value="b">Business expenses</option>
+                  <option value="r">Revenue</option>
+                  <option value="x">Excluded</option>
                 </select>
                 {catMsg && <span style={{ fontSize: 12, color: C.gray, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 12, height: 12, border: `2px solid ${C.lightBlue}`, borderTopColor: C.blue, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
                   {catMsg}
                 </span>}
                 <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-                  <button onClick={() => markAll(true)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: `1px solid #86efac`, background: C.greenLight, color: C.green, cursor: 'pointer', fontWeight: 500 }}>✓ All business</button>
-                  <button onClick={() => markAll(false)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: `1px solid #fca5a5`, background: C.redLight, color: C.red, cursor: 'pointer', fontWeight: 500 }}>✕ All personal</button>
+                  <button onClick={() => markAll(true)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: `1px solid #86efac`, background: C.greenLight, color: C.green, cursor: 'pointer', fontWeight: 500 }}>✓ Include all (filtered)</button>
+                  <button onClick={() => markAll(false)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: `1px solid #fca5a5`, background: C.redLight, color: C.red, cursor: 'pointer', fontWeight: 500 }}>✕ Exclude all (filtered)</button>
                 </div>
               </div>
 
@@ -363,40 +434,49 @@ export default function KinectTracker() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
                     <thead>
                       <tr style={{ background: C.bg }}>
-                        {[['Include', 46], ['Date', 80], ['Description', null], ['Amount', 90], ['Category', 175]].map(([h, w]) => (
+                        {[['Include', 46], ['Type', 70], ['Date', 80], ['Description', null], ['Amount', 90], ['Category', 175]].map(([h, w]) => (
                           <th key={h} style={{ padding: '9px 12px', textAlign: h === 'Amount' ? 'right' : 'left', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.gray, borderBottom: `1px solid ${C.border}`, width: w || undefined }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.length === 0 ? (
-                        <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: C.gray }}>No transactions match your filters</td></tr>
-                      ) : filtered.map(t => (
-                        <tr key={t.id} style={{ background: t.isBiz ? C.white : C.bg, opacity: t.isBiz ? 1 : 0.45 }}>
-                          <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, textAlign: 'center' }}>
-                            <button onClick={() => toggle(t.id)}
-                              style={{ width: 38, height: 21, borderRadius: 99, border: 'none', cursor: 'pointer', position: 'relative', padding: 0, background: t.isBiz ? C.blue : '#d1d5db', transition: 'background 0.2s' }}
-                              aria-label={t.isBiz ? 'Mark excluded' : 'Mark business'}>
-                              <span style={{ position: 'absolute', width: 15, height: 15, borderRadius: '50%', background: C.white, top: 3, left: t.isBiz ? 20 : 3, transition: 'left 0.18s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-                            </button>
-                          </td>
-                          <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, fontSize: 12, color: C.gray, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.date}</td>
-                          <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={t.desc}>{t.desc}</td>
-                          <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, textAlign: 'right', fontWeight: 600 }}>${t.amount.toFixed(2)}</td>
-                          <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}` }}>
-                            <select value={t.cat} onChange={e => updateCat(t.id, e.target.value)}
-                              style={{ fontSize: 12, padding: '4px 6px', borderRadius: 5, border: `1px solid ${C.border}`, background: C.bg, width: '100%' }}>
-                              {CATS.map(c => <option key={c}>{c}</option>)}
-                            </select>
-                          </td>
-                        </tr>
-                      ))}
+                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: C.gray }}>No transactions match your filters</td></tr>
+                      ) : filtered.map(t => {
+                        const included = t.direction === 'credit' ? t.isRevenue : t.isBiz;
+                        const onColor = t.direction === 'credit' ? C.green : C.blue;
+                        return (
+                          <tr key={t.id} style={{ background: included ? C.white : C.bg, opacity: included ? 1 : 0.45 }}>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, textAlign: 'center' }}>
+                              <button onClick={() => toggle(t.id)}
+                                style={{ width: 38, height: 21, borderRadius: 99, border: 'none', cursor: 'pointer', position: 'relative', padding: 0, background: included ? onColor : '#d1d5db', transition: 'background 0.2s' }}
+                                aria-label={included ? 'Mark excluded' : 'Mark included'}>
+                                <span style={{ position: 'absolute', width: 15, height: 15, borderRadius: '50%', background: C.white, top: 3, left: included ? 20 : 3, transition: 'left 0.18s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                              </button>
+                            </td>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}` }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 99, background: t.direction === 'credit' ? C.greenLight : C.redLight, color: t.direction === 'credit' ? C.green : C.red }}>
+                                {t.direction === 'credit' ? 'Revenue' : 'Expense'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, fontSize: 12, color: C.gray, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.date}</td>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }} title={t.desc}>{t.desc}</td>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}`, textAlign: 'right', fontWeight: 600 }}>${t.amount.toFixed(2)}</td>
+                            <td style={{ padding: '8px 12px', borderBottom: `1px solid ${C.border}` }}>
+                              <select value={t.cat} onChange={e => updateCat(t.id, e.target.value)}
+                                style={{ fontSize: 12, padding: '4px 6px', borderRadius: 5, border: `1px solid ${C.border}`, background: C.bg, width: '100%' }}>
+                                {CATS.map(c => <option key={c}>{c}</option>)}
+                              </select>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <p style={{ fontSize: 12, color: C.gray, marginBottom: '1rem' }}>💡 Blue toggle = included as business expense. Gray = excluded. Change category dropdown to re-classify.</p>
+              <p style={{ fontSize: 12, color: C.gray, marginBottom: '1rem' }}>💡 Toggle = included in P&L (green for revenue, blue for business expense). Gray = excluded. Change category dropdown to re-classify.</p>
 
               {/* BREAKDOWN */}
               {breakdown.length > 0 && (
@@ -420,9 +500,13 @@ export default function KinectTracker() {
                   style={{ fontSize: 13, fontWeight: 600, padding: '10px 20px', borderRadius: 8, border: 'none', background: C.navy, color: C.white, cursor: 'pointer' }}>
                   ⬇ Export business expenses (CSV)
                 </button>
+                <button onClick={() => exportCSV(rev, 'kinect_revenue.csv')}
+                  style={{ fontSize: 13, fontWeight: 600, padding: '10px 20px', borderRadius: 8, border: `1px solid #86efac`, background: C.greenLight, color: C.green, cursor: 'pointer' }}>
+                  ⬇ Export revenue (CSV)
+                </button>
                 <button onClick={printSummary}
                   style={{ fontSize: 13, fontWeight: 600, padding: '10px 20px', borderRadius: 8, border: `1px solid #fcd34d`, background: '#fffbeb', color: '#92400e', cursor: 'pointer' }}>
-                  🖨 Print summary
+                  🖨 Print P&L summary
                 </button>
                 <button onClick={() => exportCSV(txns, 'kinect_all_transactions.csv')}
                   style={{ fontSize: 13, fontWeight: 600, padding: '10px 20px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.white, color: C.navy, cursor: 'pointer' }}>
